@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-30
+
 ### Added
 
 - A Wiki.js device: pages, pages changed today, and the title of the latest
@@ -23,4 +25,5 @@ the notes of the version's GitHub Release.
   to a Wiki.js page" (a dated journal, created at its first line).
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-wikijs/commits/main
+[Unreleased]: https://github.com/guim31/gladys-wikijs/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-wikijs/releases/tag/v1.0.0
