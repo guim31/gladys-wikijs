@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "pages": {
+        "create": {
+          "responseResult": {
+            "succeeded": false,
+            "errorCode": 6002,
+            "slug": "PageDuplicateCreate",
+            "message": "Cannot create this page because an entry already exists at the same path."
+          },
+          "page": null
+        }
+      }
+    }
+  }
+}

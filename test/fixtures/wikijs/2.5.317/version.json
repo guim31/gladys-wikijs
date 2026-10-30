@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "system": {
+        "info": {
+          "currentVersion": "2.5.317"
+        }
+      }
+    }
+  }
+}

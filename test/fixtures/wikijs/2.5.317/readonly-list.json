@@ -1,0 +1,49 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "users": {
+        "profile": {
+          "id": 1
+        }
+      },
+      "pages": {
+        "list": [
+          {
+            "id": 2,
+            "path": "maison/chaudiere",
+            "locale": "en",
+            "title": "Chaudière",
+            "isPublished": true,
+            "isPrivate": false,
+            "createdAt": "2026-10-30T17:22:00.051Z",
+            "updatedAt": "2026-10-30T17:22:20.008Z",
+            "tags": ["entretien", "chauffage"]
+          },
+          {
+            "id": 3,
+            "path": "recettes/tarte-aux-pommes",
+            "locale": "en",
+            "title": "Tarte aux pommes",
+            "isPublished": true,
+            "isPrivate": false,
+            "createdAt": "2026-10-30T17:22:09.087Z",
+            "updatedAt": "2026-10-30T17:22:13.440Z",
+            "tags": ["cuisine"]
+          },
+          {
+            "id": 1,
+            "path": "home",
+            "locale": "en",
+            "title": "Accueil",
+            "isPublished": true,
+            "isPrivate": false,
+            "createdAt": "2026-10-30T17:21:54.640Z",
+            "updatedAt": "2026-10-30T17:21:57.819Z",
+            "tags": []
+          }
+        ]
+      }
+    }
+  }
+}

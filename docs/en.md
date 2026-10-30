@@ -1,61 +1,135 @@
-# Demo Devices Template
+# Wiki.js
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Connect Gladys to [Wiki.js](https://js.wiki), the self-hosted wiki: follow its
+counters, react when a page is created or updated, write pages from your
+scenes, and keep a journal (the boiler, the alarm, the garden…) that Gladys
+fills in line by line. Everything stays on your local network: Gladys talks
+directly to your Wiki.js.
 
-## What you get
+Tested against a real Wiki.js 2.5.317 (the official Docker image). Feedback
+welcome on the Gladys forum.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## Prerequisites
+
+- Gladys Assistant 5.1 or later.
+- Wiki.js 2.x reachable from the Gladys machine. Wiki.js 3 is not supported.
+- An API key: in Wiki.js, open **Administration → API Access**, click **Enable
+  API** if it is off, then **New API Key**. A **Full Access** key works. A key
+  limited to a group sees what the group sees: it needs to read the pages, and
+  to write them for the scene actions. Copy the key: it is shown once.
 
 ## Configuration
 
 1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+2. In **Wiki.js address**, enter the address you open Wiki.js at, for example
+   `192.168.1.50:3000` or `https://wiki.example.org`.
+3. Paste the **API key**.
+4. **Read Wiki.js every**: 5, 15 (default), 30 or 60 minutes. Changed pages are
+   announced at the next read.
+5. **Language of names and messages** sets the feature names (fixed when a
+   device is added) and the texts of the integration. French by default.
+6. Save, then use **Test the connection**: it shows the number of pages.
+7. In the **Discovery** tab, add the **Wiki.js** device.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+## Devices
 
-## Actions
+**Wiki.js** (one device):
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+| Feature             | Value                                          |
+| ------------------- | ---------------------------------------------- |
+| Pages               | number of pages                                |
+| Pages changed today | pages created or saved since midnight          |
+| Latest changed page | title of the page created or saved most lately |
 
-## Scenes
+The counters keep their history. The device keeps its identity when the
+address of Wiki.js changes.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+## Dashboard widget
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+**Wiki.js**: two tiles (pages, pages changed today) and the eight pages changed
+last, with their path and the time of the change. In the widget settings,
+**Folder** keeps the pages under a path (e.g. `house`) and **Tag** the pages
+carrying a tag; the tile then counts them. **Hide the counters** keeps the list
+only. When Wiki.js is reached over https, each page opens in Wiki.js.
 
-## Dashboard
+## Scene triggers
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+- **Wiki.js page created or updated**: a page is created or saved in Wiki.js.
+  Filters: **Folder** (the first part of the path, e.g. `house` for
+  `house/boiler`), **Page path** (a single page, e.g. `house/boiler`) and
+  **Change** (created, updated, or empty: both). Empty filters match every
+  page.
+- **Tagged Wiki.js page changed**: the same, for the pages carrying a tag:
+  **Tag** (required, in lower case as Wiki.js stores it, e.g. `journal`),
+  **Folder** and **Change**. A page with several tags fires once per tag, so a
+  scene set on one tag runs once.
+
+Paths are written as in the address of the page, without the language (`/en/`)
+and without the slashes at either end.
+
+Variables: **Page title**, **Page path**, **Folder**, **Change** (`created` or
+`updated`), **Page address**, **Updated by**, **Tags** (separated by commas),
+**Page id**, and **Tag** for the second trigger.
+
+The first read after the installation is silent: the pages already there are
+not announced. The pages written by this integration are never announced. At
+most ten pages are announced per read, the oldest first; the next ones wait for
+the next read. Past 50 changes between two reads (an import), ten are announced
+and the rest is counted as seen.
+
+## Scene actions
+
+- **Create a Wiki.js page**: **Page path** (e.g. `reports/2026-10`), **Title**,
+  and optionally **Content** (Markdown) and **Tags** (separated by commas). The
+  page is published, in the language most pages of the wiki use. A page
+  already at that path is an error: it is never overwritten.
+- **Add a line to a Wiki.js page**: **Page path** and **Line**. The line is
+  added at the end of the page, as a new paragraph, starting with the date and
+  time unless **Start with the date and time** is off. The page is created at
+  its first line, titled with the end of its path unless **Title if the page is
+  created** is filled in. Markdown pages take the line as Markdown, pages of the
+  visual editor as plain text. Everything else in the page (title, tags,
+  publication, scripts) is kept.
+
+Both return **Page id**, **Page path** and **Page address**; the second one
+also **Page created**.
+
+## Scene examples
+
+- **Boiler log**: when the boiler pressure drops below 1 bar → **Add a line to
+  a Wiki.js page**, path `journal/boiler`, line "Pressure below 1 bar".
+- **Know what changed**: trigger **Wiki.js page created or updated**, folder
+  `procedures` → send a message "{{triggerEvent.data.updated_by}} updated
+  {{triggerEvent.data.title}}".
+- **Shopping list on the wiki**: trigger **Wiki.js page created or updated**,
+  page path `home/shopping` → send the page address to the family.
+- **Holiday report**: when the alarm is turned off after a holiday → **Create a
+  Wiki.js page** at `reports/holidays-2026`, tagged `report`.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"Wiki.js did not accept the API key"**: the key was revoked, has expired or
+  was mistyped, or the API is disabled. Wiki.js then answers as a visitor that
+  is not logged in: check **Administration → API Access**.
+- **"The API key may not write this page"**: the group of the key lacks the
+  write permission on that path. Use a Full Access key, or extend the group.
+- **"Wiki.js does not answer"**: check the address and the port from the Gladys
+  machine. The container uses a bridge network: `localhost` is the container
+  itself, enter the IP address of the server instead.
+- **"This address does not answer like Wiki.js"**: a proxy login page answers
+  instead of Wiki.js, or the address holds the path of a page. Enter the
+  address of the home of the wiki.
+- The version shows `?` on the device: the key may not read the system
+  information (only a Full Access key can). Nothing else is affected.
+- To see more in the logs of the integration, set `LOG_LEVEL=debug`.
+
+## Limits
+
+- One Wiki.js, seen with the permissions of its API key.
+- The triggers fire at the next read (15 minutes by default), not instantly:
+  Wiki.js pushes nothing. Pages deleted, moved or only commented are not
+  announced; a page saved several times between two reads is announced once.
+- A read is one request listing every page (a few hundred kB for thousands of
+  pages), plus one per announced page. Wiki.js sets no request quota.
+- The integration never deletes nor moves anything in Wiki.js.
+- Not affiliated with Wiki.js or Requarks.

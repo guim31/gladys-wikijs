@@ -32,15 +32,20 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+src/app.js                        registers every SDK handler on the hub (also used by the tests)
+src/hub.js                        the link to Wiki.js: reads, states, triggers, scene writes, status
+src/wikijs/client.js              the GraphQL calls (list, single, singleByPath, create, update)
+src/wikijs/model.js               pages summarized, paths, tags, locale, journal lines
+src/devices.js                    the "Wiki.js" device and its states
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/widgets.js                    the "pages" dashboard widget
+src/store.js                      /data/wikijs-state.json: the newest change seen by the triggers
+src/texts.js                      every text the container produces, in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
+test/                             node --test, against the SDK's fake Gladys and a fake Wiki.js
+test/fixtures/wikijs/2.5.317/     answers recorded on a real Wiki.js (ghcr.io/requarks/wiki:2)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +75,8 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in English, French, German and Spanish: action
+  messages, manifest texts, and `docs/{en,fr,de,es}.md`, kept in sync.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -251,3 +256,33 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Wiki.js (faits vérifiés sur Wiki.js 2.5.317, `ghcr.io/requarks/wiki:2`, le 30/10/2026)
+
+- API GraphQL seule (`POST /graphql`, `Authorization: Bearer <clé>`), **toujours HTTP 200**, erreurs comprises :
+  `{ errors: [{ message, extensions.exception.code }], data }`, `data` gardant ce qui a pu être lu. Une route
+  inconnue répond une page HTML 404.
+- **Une clé fausse, révoquée ou expirée, ou une API désactivée, n'est pas refusée** : la requête passe en invité,
+  qui peut lire les pages publiques. `users.profile` sépare les deux (erreur 1019 en invité, `{ id: 1 }` pour
+  toute clé, même de groupe). Il est demandé dans la même requête que `pages.list`.
+- Une clé de groupe sans un droit reçoit `"Forbidden"` sur le champ : `system.info` (la version) exige
+  `manage:system`, donc la version est facultative (`?` sur l'appareil).
+- `pages.list` n'a pas de total : sans `limit`, il rend toutes les pages lisibles (une seule requête par lecture).
+  Ses `tags` sont des chaînes ; ceux de `pages.single` des objets `{ tag }`. Wiki.js met les étiquettes en
+  minuscules.
+- **`pages.update` réécrit tous les champs** : sans `isPublished` la page est **dépubliée**, sans `tags` l'appel
+  échoue (`TypeError`) après avoir déjà modifié la page, sans `scriptCss`/`scriptJs` ils sont vidés, sans
+  `title`/`description`… Lire la page entière (`single`/`singleByPath`) et tout renvoyer. Le contenu ne peut pas
+  être vide (create et update).
+- `pages.create` rend la page sans `locale` : la demander fait échouer tout le champ `page` (alors que la page est
+  créée). `responseResult.errorCode` 6002 = chemin déjà pris, 6005 = chemin illégal (un `.`, un `%`).
+  `pages.single` / `singleByPath` d'une page absente : erreur 6003.
+- L'adresse d'une page est `/<locale>/<chemin>` : le segment de langue est toujours compris, espace de noms ou
+  non. `updatedAt` rendu par create/update est celui que la liste montrera (sert à ne pas annoncer ses propres
+  écritures).
+- Le cœur ne filtre les déclencheurs que par égalité : `folder` = première partie du chemin, `path` = chemin
+  exact, un événement « étiquetée » par étiquette. Le widget, calculé dans le conteneur, filtre par préfixe.
+- `card-list` en `list` : 8 éléments au plus (le brief en voulait 10).
+- Instance de test : `postgres:16-alpine` + `ghcr.io/requarks/wiki:2` sur un réseau en pont, installation par
+  `POST /finalize`, puis `authentication.login`, `setApiState(enabled: true)`, `createApiKey(fullAccess: true)` ;
+  une clé `fullAccess: false, group: 2` (Guests) donne les réponses « lecture seule ».

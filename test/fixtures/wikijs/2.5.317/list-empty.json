@@ -1,0 +1,15 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "users": {
+        "profile": {
+          "id": 1
+        }
+      },
+      "pages": {
+        "list": []
+      }
+    }
+  }
+}

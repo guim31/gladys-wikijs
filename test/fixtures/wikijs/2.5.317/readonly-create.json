@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "errors": [
+      {
+        "message": "Forbidden",
+        "locations": [
+          {
+            "line": 1,
+            "column": 109
+          }
+        ],
+        "path": ["pages", "create"],
+        "extensions": {
+          "code": "INTERNAL_SERVER_ERROR",
+          "exception": {}
+        }
+      }
+    ],
+    "data": {
+      "pages": {
+        "create": null
+      }
+    }
+  }
+}
