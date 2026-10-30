@@ -328,6 +328,9 @@ export class Hub {
     }
     // A scene write in progress: its page must be known as ours first.
     await this.writing;
+    if (client !== this.client || this.stopped) {
+      return; // reconfigured or stopped while a write finished
+    }
     await this.#announce(client, this.pages);
     await this.updateConnectionStatus();
   }
