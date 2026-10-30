@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "pages": {
+        "update": {
+          "responseResult": {
+            "succeeded": false,
+            "errorCode": 1,
+            "slug": "Error",
+            "message": "Invalid Page Id"
+          },
+          "page": null
+        }
+      }
+    }
+  }
+}

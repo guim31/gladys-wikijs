@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "pages": {
+        "create": {
+          "responseResult": {
+            "succeeded": false,
+            "errorCode": 6005,
+            "slug": "PageIllegalPath",
+            "message": "Page path cannot contains illegal characters."
+          },
+          "page": null
+        }
+      }
+    }
+  }
+}

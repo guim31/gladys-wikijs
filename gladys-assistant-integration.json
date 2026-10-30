@@ -1,177 +1,860 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Wiki.js",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Your Wiki.js in Gladys: page counters, changed pages, pages and journal lines from scenes.",
+    "fr": "Votre Wiki.js dans Gladys : compteurs, pages modifiées, pages et journal écrits par scène.",
+    "de": "Dein Wiki.js in Gladys: Seitenzähler, geänderte Seiten, Seiten und Journal aus Szenen.",
+    "es": "Su Wiki.js en Gladys: contadores, páginas modificadas, páginas y diario desde escenas."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-wikijs:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-wikijs/main/cover.png",
+  "categories": ["services"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Connect Wiki.js",
+        "fr": "Connecter Wiki.js",
+        "de": "Wiki.js verbinden",
+        "es": "Conectar Wiki.js"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Enter the address of your Wiki.js (version 2) and an API key: in Wiki.js, open Administration → API Access, enable the API, then create a key. A \"Full Access\" key works; a group key needs to read pages, and to write them for the scene actions.",
+        "fr": "Saisissez l'adresse de votre Wiki.js (version 2) et une clé d'API : dans Wiki.js, ouvrez Administration → API Access, activez l'API, puis créez une clé. Une clé « Full Access » convient ; une clé de groupe doit pouvoir lire les pages, et les écrire pour les actions de scène.",
+        "de": "Gib die Adresse deines Wiki.js (Version 2) und einen API-Schlüssel ein: Öffne in Wiki.js Administration → API Access, aktiviere die API und erstelle einen Schlüssel. Ein „Full Access“-Schlüssel passt; ein Gruppenschlüssel muss Seiten lesen und, für die Szenenaktionen, schreiben dürfen.",
+        "es": "Introduzca la dirección de su Wiki.js (versión 2) y una clave de API: en Wiki.js, abra Administration → API Access, active la API y cree una clave. Una clave «Full Access» sirve; una clave de grupo debe poder leer las páginas, y escribirlas para las acciones de escena."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://docs.requarks.io/dev/api",
+          "label": {
+            "en": "Wiki.js API documentation",
+            "fr": "Documentation de l'API de Wiki.js",
+            "de": "Wiki.js-API-Dokumentation",
+            "es": "Documentación de la API de Wiki.js"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Wiki.js address",
+        "fr": "Adresse de Wiki.js",
+        "de": "Wiki.js-Adresse",
+        "es": "Dirección de Wiki.js"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "placeholder": {
+        "en": "e.g. 192.168.1.50:3000",
+        "fr": "ex. 192.168.1.50:3000",
+        "de": "z. B. 192.168.1.50:3000",
+        "es": "p. ej. 192.168.1.50:3000"
+      },
+      "description": {
+        "en": "The address you open Wiki.js at.",
+        "fr": "L'adresse à laquelle vous ouvrez Wiki.js.",
+        "de": "Die Adresse, unter der du Wiki.js öffnest.",
+        "es": "La dirección en la que abre Wiki.js."
+      },
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "api_key",
+      "type": "secret",
+      "label": {
+        "en": "API key",
+        "fr": "Clé d'API",
+        "de": "API-Schlüssel",
+        "es": "Clave de API"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Shown once, when the key is created.",
+        "fr": "Affichée une seule fois, à la création de la clé.",
+        "de": "Wird nur einmal angezeigt, beim Erstellen des Schlüssels.",
+        "es": "Se muestra una sola vez, al crear la clave."
+      },
+      "required": true
     },
     {
-      "key": "unit",
+      "key": "refresh_minutes",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Read Wiki.js every",
+        "fr": "Lire Wiki.js toutes les",
+        "de": "Wiki.js lesen alle",
+        "es": "Leer Wiki.js cada"
+      },
+      "description": {
+        "en": "Changed pages are announced at the next read.",
+        "fr": "Les pages modifiées sont annoncées à la lecture suivante.",
+        "de": "Geänderte Seiten werden beim nächsten Lesen gemeldet.",
+        "es": "Las páginas modificadas se anuncian en la siguiente lectura."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "15",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "5",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 minutes",
+            "fr": "30 minutes",
+            "de": "30 Minuten",
+            "es": "30 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "60 minutes",
+            "fr": "60 minutes",
+            "de": "60 Minuten",
+            "es": "60 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of names and messages",
+        "fr": "Langue des noms et messages",
+        "de": "Sprache der Namen und Meldungen",
+        "es": "Idioma de nombres y mensajes"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Feature names are set when a device is added to Gladys.",
+        "fr": "Les noms des fonctionnalités sont fixés à l'ajout d'un appareil dans Gladys.",
+        "de": "Die Namen der Funktionen werden beim Hinzufügen eines Geräts zu Gladys festgelegt.",
+        "es": "Los nombres de las funciones se fijan al añadir un dispositivo a Gladys."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "page_changed",
+      "label": {
+        "en": "Wiki.js page created or updated",
+        "fr": "Page Wiki.js créée ou modifiée",
+        "de": "Wiki.js-Seite erstellt oder geändert",
+        "es": "Página de Wiki.js creada o modificada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A page is created or saved in Wiki.js (the pages written by this integration excepted).",
+        "fr": "Une page est créée ou enregistrée dans Wiki.js (hors pages écrites par cette intégration).",
+        "de": "Eine Seite wird in Wiki.js erstellt oder gespeichert (außer Seiten dieser Integration).",
+        "es": "Se crea o guarda una página en Wiki.js (salvo las páginas escritas por esta integración)."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "key": "folder",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Folder (empty: all)",
+            "fr": "Dossier (vide : tous)",
+            "de": "Ordner (leer: alle)",
+            "es": "Carpeta (vacío: todas)"
+          },
+          "description": {
+            "en": "The first part of the page path, as in the address (e.g. house for house/boiler).",
+            "fr": "La première partie du chemin de la page, comme dans l'adresse (ex. maison pour maison/chaudiere).",
+            "de": "Der erste Teil des Seitenpfads, wie in der Adresse (z. B. haus für haus/heizung).",
+            "es": "La primera parte de la ruta de la página, como en la dirección (p. ej. casa para casa/caldera)."
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "path",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Page path (empty: all)",
+            "fr": "Chemin de la page (vide : toutes)",
+            "de": "Seitenpfad (leer: alle)",
+            "es": "Ruta de la página (vacío: todas)"
+          },
+          "description": {
+            "en": "A single page, its path as in the address without the language (e.g. house/boiler).",
+            "fr": "Une seule page, son chemin comme dans l'adresse sans la langue (ex. maison/chaudiere).",
+            "de": "Eine einzelne Seite, ihr Pfad wie in der Adresse ohne Sprache (z. B. haus/heizung).",
+            "es": "Una sola página, su ruta como en la dirección sin el idioma (p. ej. casa/caldera)."
+          }
+        },
+        {
+          "key": "change",
+          "type": "select",
+          "required": false,
+          "label": {
+            "en": "Change (empty: both)",
+            "fr": "Changement (vide : les deux)",
+            "de": "Änderung (leer: beide)",
+            "es": "Cambio (vacío: ambos)"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "created",
+              "label": {
+                "en": "Page created",
+                "fr": "Page créée",
+                "de": "Seite erstellt",
+                "es": "Página creada"
+              }
+            },
+            {
+              "value": "updated",
+              "label": {
+                "en": "Page updated",
+                "fr": "Page modifiée",
+                "de": "Seite aktualisiert",
+                "es": "Página actualizada"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "title",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Page title",
+            "fr": "Titre de la page",
+            "de": "Seitentitel",
+            "es": "Título de la página"
+          }
+        },
+        {
+          "key": "path",
+          "type": "string",
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          }
+        },
+        {
+          "key": "folder",
+          "type": "string",
+          "label": {
+            "en": "Folder",
+            "fr": "Dossier",
+            "de": "Ordner",
+            "es": "Carpeta"
+          }
+        },
+        {
+          "key": "change",
+          "type": "string",
+          "label": {
+            "en": "Change (created or updated)",
+            "fr": "Changement (created ou updated)",
+            "de": "Änderung (created oder updated)",
+            "es": "Cambio (created o updated)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Page address",
+            "fr": "Adresse de la page",
+            "de": "Adresse der Seite",
+            "es": "Dirección de la página"
+          }
+        },
+        {
+          "key": "updated_by",
+          "type": "string",
+          "label": {
+            "en": "Updated by",
+            "fr": "Modifiée par",
+            "de": "Aktualisiert von",
+            "es": "Actualizada por"
+          }
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "label": {
+            "en": "Tags",
+            "fr": "Étiquettes",
+            "de": "Tags",
+            "es": "Etiquetas"
+          }
+        },
+        {
+          "key": "page_id",
+          "type": "number",
+          "label": {
+            "en": "Page id",
+            "fr": "Identifiant de la page",
+            "de": "Seiten-ID",
+            "es": "Id. de la página"
+          }
+        }
+      ]
+    },
+    {
+      "key": "tagged_page_changed",
+      "label": {
+        "en": "Tagged Wiki.js page changed",
+        "fr": "Page Wiki.js étiquetée modifiée",
+        "de": "Wiki.js-Seite mit Tag geändert",
+        "es": "Página de Wiki.js etiquetada modificada"
+      },
+      "description": {
+        "en": "A page carrying a given tag is created or saved in Wiki.js.",
+        "fr": "Une page portant une étiquette donnée est créée ou enregistrée dans Wiki.js.",
+        "de": "Eine Seite mit einem bestimmten Tag wird in Wiki.js erstellt oder gespeichert.",
+        "es": "Se crea o guarda en Wiki.js una página con una etiqueta concreta."
+      },
+      "fields": [
+        {
+          "key": "tag",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Tag",
+            "fr": "Étiquette",
+            "de": "Tag",
+            "es": "Etiqueta"
+          },
+          "description": {
+            "en": "The tag, in lower case as Wiki.js stores it (e.g. journal).",
+            "fr": "L'étiquette, en minuscules comme Wiki.js l'enregistre (ex. journal).",
+            "de": "Der Tag, kleingeschrieben, wie Wiki.js ihn speichert (z. B. journal).",
+            "es": "La etiqueta, en minúsculas como la guarda Wiki.js (p. ej. journal)."
+          }
+        },
+        {
+          "key": "folder",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Folder (empty: all)",
+            "fr": "Dossier (vide : tous)",
+            "de": "Ordner (leer: alle)",
+            "es": "Carpeta (vacío: todas)"
+          },
+          "description": {
+            "en": "The first part of the page path, as in the address (e.g. house for house/boiler).",
+            "fr": "La première partie du chemin de la page, comme dans l'adresse (ex. maison pour maison/chaudiere).",
+            "de": "Der erste Teil des Seitenpfads, wie in der Adresse (z. B. haus für haus/heizung).",
+            "es": "La primera parte de la ruta de la página, como en la dirección (p. ej. casa para casa/caldera)."
+          }
+        },
+        {
+          "key": "change",
+          "type": "select",
+          "required": false,
+          "label": {
+            "en": "Change (empty: both)",
+            "fr": "Changement (vide : les deux)",
+            "de": "Änderung (leer: beide)",
+            "es": "Cambio (vacío: ambos)"
+          },
+          "options": [
+            {
+              "value": "created",
+              "label": {
+                "en": "Page created",
+                "fr": "Page créée",
+                "de": "Seite erstellt",
+                "es": "Página creada"
+              }
+            },
+            {
+              "value": "updated",
+              "label": {
+                "en": "Page updated",
+                "fr": "Page modifiée",
+                "de": "Seite aktualisiert",
+                "es": "Página actualizada"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Page title",
+            "fr": "Titre de la page",
+            "de": "Seitentitel",
+            "es": "Título de la página"
+          }
+        },
+        {
+          "key": "path",
+          "type": "string",
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          }
+        },
+        {
+          "key": "folder",
+          "type": "string",
+          "label": {
+            "en": "Folder",
+            "fr": "Dossier",
+            "de": "Ordner",
+            "es": "Carpeta"
+          }
+        },
+        {
+          "key": "change",
+          "type": "string",
+          "label": {
+            "en": "Change (created or updated)",
+            "fr": "Changement (created ou updated)",
+            "de": "Änderung (created oder updated)",
+            "es": "Cambio (created o updated)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Page address",
+            "fr": "Adresse de la page",
+            "de": "Adresse der Seite",
+            "es": "Dirección de la página"
+          }
+        },
+        {
+          "key": "updated_by",
+          "type": "string",
+          "label": {
+            "en": "Updated by",
+            "fr": "Modifiée par",
+            "de": "Aktualisiert von",
+            "es": "Actualizada por"
+          }
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "label": {
+            "en": "Tags",
+            "fr": "Étiquettes",
+            "de": "Tags",
+            "es": "Etiquetas"
+          }
+        },
+        {
+          "key": "page_id",
+          "type": "number",
+          "label": {
+            "en": "Page id",
+            "fr": "Identifiant de la page",
+            "de": "Seiten-ID",
+            "es": "Id. de la página"
+          }
+        },
+        {
+          "key": "tag",
+          "type": "string",
+          "label": {
+            "en": "Tag",
+            "fr": "Étiquette",
+            "de": "Tag",
+            "es": "Etiqueta"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "create_page",
+      "label": {
+        "en": "Create a Wiki.js page",
+        "fr": "Créer une page Wiki.js",
+        "de": "Wiki.js-Seite erstellen",
+        "es": "Crear una página de Wiki.js"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Creates a Markdown page at a path, with tags if you want. An existing page is never overwritten.",
+        "fr": "Crée une page Markdown à un chemin, avec des étiquettes si vous le souhaitez. Une page existante n'est jamais écrasée.",
+        "de": "Erstellt eine Markdown-Seite unter einem Pfad, auf Wunsch mit Tags. Eine vorhandene Seite wird nie überschrieben.",
+        "es": "Crea una página Markdown en una ruta, con etiquetas si lo desea. Una página existente nunca se sobrescribe."
+      },
+      "timeout_seconds": 60,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "key": "path",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          },
+          "placeholder": {
+            "en": "e.g. reports/2026-10",
+            "fr": "ex. rapports/2026-10",
+            "de": "z. B. berichte/2026-10",
+            "es": "p. ej. informes/2026-10"
+          },
+          "description": {
+            "en": "As in the address of the page, without the language.",
+            "fr": "Comme dans l'adresse de la page, sans la langue.",
+            "de": "Wie in der Adresse der Seite, ohne Sprache.",
+            "es": "Como en la dirección de la página, sin el idioma."
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Content (optional)",
+            "fr": "Contenu (facultatif)",
+            "de": "Inhalt (optional)",
+            "es": "Contenido (opcional)"
+          },
+          "description": {
+            "en": "Markdown text.",
+            "fr": "Texte Markdown.",
+            "de": "Markdown-Text.",
+            "es": "Texto Markdown."
+          }
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Tags (optional)",
+            "fr": "Étiquettes (facultatif)",
+            "de": "Tags (optional)",
+            "es": "Etiquetas (opcional)"
+          },
+          "placeholder": {
+            "en": "e.g. report, kitchen",
+            "fr": "ex. rapport, cuisine",
+            "de": "z. B. bericht, küche",
+            "es": "p. ej. informe, cocina"
+          },
+          "description": {
+            "en": "Separated by commas.",
+            "fr": "Séparées par des virgules.",
+            "de": "Durch Kommas getrennt.",
+            "es": "Separadas por comas."
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "page_id",
+          "type": "number",
+          "label": {
+            "en": "Page id",
+            "fr": "Identifiant de la page",
+            "de": "Seiten-ID",
+            "es": "Id. de la página"
+          }
+        },
+        {
+          "key": "path",
+          "type": "string",
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Page address",
+            "fr": "Adresse de la page",
+            "de": "Adresse der Seite",
+            "es": "Dirección de la página"
+          }
+        }
+      ]
+    },
+    {
+      "key": "append_line",
+      "label": {
+        "en": "Add a line to a Wiki.js page",
+        "fr": "Ajouter une ligne à une page Wiki.js",
+        "de": "Zeile zu einer Wiki.js-Seite hinzufügen",
+        "es": "Añadir una línea a una página de Wiki.js"
+      },
+      "description": {
+        "en": "Adds a line at the end of a page (a journal), and creates the page at its first line.",
+        "fr": "Ajoute une ligne à la fin d'une page (un journal), et crée la page à sa première ligne.",
+        "de": "Fügt am Ende einer Seite (eines Journals) eine Zeile hinzu und erstellt die Seite bei der ersten Zeile.",
+        "es": "Añade una línea al final de una página (un diario) y crea la página con su primera línea."
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "path",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          },
+          "placeholder": {
+            "en": "e.g. journal/boiler",
+            "fr": "ex. journal/chaudiere",
+            "de": "z. B. journal/heizung",
+            "es": "p. ej. diario/caldera"
+          },
+          "description": {
+            "en": "As in the address of the page, without the language.",
+            "fr": "Comme dans l'adresse de la page, sans la langue.",
+            "de": "Wie in der Adresse der Seite, ohne Sprache.",
+            "es": "Como en la dirección de la página, sin el idioma."
+          }
+        },
+        {
+          "key": "line",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Line",
+            "fr": "Ligne",
+            "de": "Zeile",
+            "es": "Línea"
+          }
+        },
+        {
+          "key": "add_time",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "required": false,
+          "default": true,
+          "label": {
+            "en": "Start with the date and time",
+            "fr": "Commencer par la date et l'heure",
+            "de": "Mit Datum und Uhrzeit beginnen",
+            "es": "Empezar con la fecha y la hora"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Title if the page is created (optional)",
+            "fr": "Titre si la page est créée (facultatif)",
+            "de": "Titel, falls die Seite erstellt wird (optional)",
+            "es": "Título si se crea la página (opcional)"
+          },
+          "description": {
+            "en": "By default, the end of the path.",
+            "fr": "Par défaut, la fin du chemin.",
+            "de": "Standardmäßig das Ende des Pfads.",
+            "es": "Por defecto, el final de la ruta."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "page_id",
+          "type": "number",
+          "label": {
+            "en": "Page id",
+            "fr": "Identifiant de la page",
+            "de": "Seiten-ID",
+            "es": "Id. de la página"
+          }
+        },
+        {
+          "key": "path",
+          "type": "string",
+          "label": {
+            "en": "Page path",
+            "fr": "Chemin de la page",
+            "de": "Seitenpfad",
+            "es": "Ruta de la página"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Page address",
+            "fr": "Adresse de la page",
+            "de": "Adresse der Seite",
+            "es": "Dirección de la página"
+          }
+        },
+        {
+          "key": "created",
+          "type": "boolean",
+          "label": {
+            "en": "Page created",
+            "fr": "Page créée",
+            "de": "Seite erstellt",
+            "es": "Página creada"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "pages",
+      "label": {
+        "en": "Wiki.js",
+        "fr": "Wiki.js",
+        "de": "Wiki.js",
+        "es": "Wiki.js"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Counters and the pages changed last.",
+        "fr": "Compteurs et dernières pages modifiées.",
+        "de": "Zähler und zuletzt geänderte Seiten.",
+        "es": "Contadores y últimas páginas modificadas."
+      },
+      "icon": "book-open",
+      "settings": [
+        {
+          "key": "folder",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Folder (empty: all)",
+            "fr": "Dossier (vide : tous)",
+            "de": "Ordner (leer: alle)",
+            "es": "Carpeta (vacío: todas)"
+          },
+          "description": {
+            "en": "Only the pages under this path (e.g. house).",
+            "fr": "Seulement les pages sous ce chemin (ex. maison).",
+            "de": "Nur die Seiten unter diesem Pfad (z. B. haus).",
+            "es": "Solo las páginas bajo esta ruta (p. ej. casa)."
+          }
+        },
+        {
+          "key": "tag",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Tag (empty: all)",
+            "fr": "Étiquette (vide : toutes)",
+            "de": "Tag (leer: alle)",
+            "es": "Etiqueta (vacío: todas)"
+          }
+        },
+        {
+          "key": "hide_counters",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "label": {
+            "en": "Hide the counters",
+            "fr": "Masquer les compteurs",
+            "de": "Zähler ausblenden",
+            "es": "Ocultar los contadores"
+          }
+        }
+      ]
     }
   ]
 }

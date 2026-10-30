@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "pages": {
+        "create": {
+          "responseResult": {
+            "succeeded": true,
+            "errorCode": 0,
+            "slug": "ok",
+            "message": "Page created successfully."
+          },
+          "page": {
+            "id": 2,
+            "path": "maison/chaudiere",
+            "title": "Chaudière",
+            "createdAt": "2026-10-30T17:22:00.051Z",
+            "updatedAt": "2026-10-30T17:22:05.178Z"
+          }
+        }
+      }
+    }
+  }
+}

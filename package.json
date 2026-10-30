@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-wikijs",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Wiki.js integration for Gladys Assistant: page counters, changed pages, pages and journal lines written from scenes.",
   "type": "module",
   "main": "index.js",
   "scripts": {

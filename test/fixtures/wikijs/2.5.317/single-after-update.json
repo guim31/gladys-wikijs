@@ -1,0 +1,37 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "pages": {
+        "single": {
+          "id": 2,
+          "path": "maison/chaudiere",
+          "locale": "en",
+          "title": "Chaudière",
+          "description": "",
+          "content": "# Chaudière\n\nEntretien annuel en octobre.\n\n2026-10-30 18:00 — Révision faite",
+          "editor": "markdown",
+          "contentType": "markdown",
+          "isPublished": true,
+          "isPrivate": false,
+          "publishStartDate": "",
+          "publishEndDate": "",
+          "scriptCss": "",
+          "scriptJs": "",
+          "createdAt": "2026-10-30T17:22:00.051Z",
+          "updatedAt": "2026-10-30T17:22:20.008Z",
+          "authorName": "Administrator",
+          "creatorName": "Administrator",
+          "tags": [
+            {
+              "tag": "entretien"
+            },
+            {
+              "tag": "chauffage"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
