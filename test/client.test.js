@@ -140,7 +140,12 @@ test('not Wiki.js: an HTML page, a server down, too late', async () => {
   );
   const slow = (url, init) =>
     new Promise((resolve, reject) => {
-      init.signal.addEventListener('abort', () => reject(init.signal.reason));
+      // A pending timer keeps the event loop alive (the abort timer does not).
+      const late = setTimeout(resolve, 5000);
+      init.signal.addEventListener('abort', () => {
+        clearTimeout(late);
+        reject(init.signal.reason);
+      });
     });
   await assert.rejects(
     new WikiJsClient({ url: HOST, apiKey: 'a', fetch: slow, timeout: 20 }).pages(),
