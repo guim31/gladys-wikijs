@@ -131,5 +131,6 @@ also **Page created**.
   announced; a page saved several times between two reads is announced once.
 - A read is one request listing every page (a few hundred kB for thousands of
   pages), plus one per announced page. Wiki.js sets no request quota.
+- Unpublished pages are counted and announced like the others: the key sees them.
 - The integration never deletes nor moves anything in Wiki.js.
 - Not affiliated with Wiki.js or Requarks.

@@ -563,7 +563,7 @@
         "de": "Erstellt eine Markdown-Seite unter einem Pfad, auf Wunsch mit Tags. Eine vorhandene Seite wird nie überschrieben.",
         "es": "Crea una página Markdown en una ruta, con etiquetas si lo desea. Una página existente nunca se sobrescribe."
       },
-      "timeout_seconds": 30,
+      "timeout_seconds": 60,
       "fields": [
         {
           "key": "path",
@@ -687,7 +687,7 @@
         "de": "Fügt am Ende einer Seite (eines Journals) eine Zeile hinzu und erstellt die Seite bei der ersten Zeile.",
         "es": "Añade una línea al final de una página (un diario) y crea la página con su primera línea."
       },
-      "timeout_seconds": 30,
+      "timeout_seconds": 60,
       "fields": [
         {
           "key": "path",

@@ -66,6 +66,7 @@ export class CommandError extends Error {
 const linkOf = (config) => JSON.stringify([config.url, config.apiKey]);
 const timeOf = (iso) => Date.parse(iso);
 const ownKey = (page) => `${page.id}@${timeOf(page.updated)}`;
+const ownTime = (key) => Number(key.split('@')[1]);
 
 /** Local midnight (the TZ of Gladys, injected by its supervisor) of a time. */
 export function startOfDay(time) {
@@ -118,6 +119,8 @@ export class Hub {
     this.seen = null;
     /** `<page id>@<time>` of the changes written by the integration */
     this.own = new Set();
+    /** ids announced "created" since `seen.since`: never "created" twice */
+    this.createdIds = new Set();
     /** `<page id>@<time>` -> { tries, sent }: events Gladys refused, events it took */
     this.retries = new Map();
     this.eventFailing = false;
@@ -161,6 +164,9 @@ export class Hub {
     // even after a restart.
     if (Array.isArray(saved.own)) {
       this.own = new Set(saved.own.filter((k) => typeof k === 'string').slice(-MAX_OWN));
+    }
+    if (this.seen && Array.isArray(saved.created)) {
+      this.createdIds = new Set(saved.created.filter(Number.isInteger));
     }
     this.#scheduleMidnight();
     await this.reconfigure(config);
@@ -320,6 +326,8 @@ export class Hub {
     if (client !== this.client || this.stopped) {
       return; // the configuration changed meanwhile
     }
+    // A scene write in progress: its page must be known as ours first.
+    await this.writing;
     await this.#announce(client, this.pages);
     await this.updateConnectionStatus();
   }
@@ -337,6 +345,9 @@ export class Hub {
       logger.warn(`Wiki.js: ${err.message}`);
     } else {
       logger.debug(`Wiki.js still failing: ${err.message}`);
+    }
+    if (this.failure === null) {
+      this.refreshWidget(); // the widget shows that Wiki.js does not answer
     }
     this.failure = kind;
   }
@@ -377,7 +388,7 @@ export class Hub {
       since = mark.at;
     } else {
       const changes = pages.filter((p) => !seenBy(known, p)).reverse();
-      const fresh = changes.filter((p) => !this.own.has(ownKey(p)));
+      const fresh = changes.filter((p) => !this.#isOwn(p));
       const pending = fresh.slice(0, MAX_EVENTS_PER_READ);
       const burst = fresh.length > BURST;
       if (burst) {
@@ -387,7 +398,7 @@ export class Hub {
       let stopped = false;
       let deferred = false;
       for (const page of changes) {
-        if (this.own.has(ownKey(page))) {
+        if (this.#isOwn(page)) {
           mark = advance(mark, page);
           continue;
         }
@@ -412,9 +423,17 @@ export class Hub {
       }
     }
     for (const key of this.own) {
-      if (Number(key.split('@')[1]) <= mark.at) {
+      if (ownTime(key) <= mark.at) {
         this.own.delete(key);
       }
+    }
+    for (const key of this.retries.keys()) {
+      if (ownTime(key) <= mark.at) {
+        this.retries.delete(key); // seen meanwhile (changed again, a burst)
+      }
+    }
+    if (since !== known?.since) {
+      this.createdIds.clear();
     }
     this.seen = { instance: this.#instance, at: mark.at, ids: mark.ids, since };
     await this.#save();
@@ -422,7 +441,7 @@ export class Hub {
 
   /** The mark and the own changes on disk, when they changed. */
   async #save() {
-    const data = { ...this.seen, own: [...this.own] };
+    const data = { ...this.seen, own: [...this.own], created: [...this.createdIds] };
     const text = JSON.stringify(data);
     if (text !== this.saved) {
       this.saved = text;
@@ -445,7 +464,11 @@ export class Hub {
     } catch (err) {
       logger.debug(`Page ${page.id} not read: ${err.message}`);
     }
-    const data = this.#eventData(page, author, since);
+    // Created after the last complete read, and not announced as such yet (a
+    // page created, announced, then saved again while events wait). Decided
+    // once per change: a retry sends the same events.
+    attempt.created ??= timeOf(page.created) > since && !this.createdIds.has(page.id);
+    const data = this.#eventData(page, author, attempt.created);
     const events = [
       [TRIGGERS.changed, data],
       ...page.tags.map((tag) => [TRIGGERS.tagged, { ...data, tag: tag.slice(0, 1000) }]),
@@ -491,14 +514,31 @@ export class Hub {
       }
     }
     this.retries.delete(key);
+    if (attempt.created) {
+      this.createdIds.add(page.id);
+    }
     return 'done';
   }
 
-  #eventData(page, author, since) {
+  /**
+   * A change written by the integration: Wiki.js may list a page between its
+   * write and its render with an earlier time than the one it answered.
+   */
+  #isOwn(page) {
+    const at = timeOf(page.updated);
+    for (const key of this.own) {
+      if (key.startsWith(`${page.id}@`) && at <= ownTime(key)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  #eventData(page, author, created) {
     return {
       folder: page.folder.slice(0, 1000),
       path: page.path.slice(0, 1000),
-      change: timeOf(page.created) > since ? 'created' : 'updated',
+      change: created ? 'created' : 'updated',
       title: page.title.slice(0, 1000),
       url: page.url.slice(0, 1000),
       updated_by: author.slice(0, 1000),

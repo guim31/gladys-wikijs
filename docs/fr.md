@@ -147,5 +147,6 @@ Les deux renvoient **Identifiant de la page**, **Chemin de la page** et
 - Une lecture est une requête qui liste toutes les pages (quelques centaines de
   Ko pour des milliers de pages), plus une par page annoncée. Wiki.js n'impose
   aucun quota de requêtes.
+- Les pages non publiées sont comptées et annoncées comme les autres : la clé les voit.
 - L'intégration ne supprime ni ne déplace jamais rien dans Wiki.js.
 - Sans lien avec Wiki.js ni Requarks.

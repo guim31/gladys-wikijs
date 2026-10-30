@@ -501,3 +501,36 @@ test('the language changes the names, not the device', async (t) => {
   assert.equal(device.external_id, mainDevice);
   assert.equal(device.features[1].name, 'Páginas modificadas hoy');
 });
+
+test('a page announced "created", saved again while events wait, is then "updated"', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const page = world.server.addPage({ path: 'a', title: 'A' });
+  for (let i = 0; i < 12; i += 1) {
+    world.server.addPage({ path: `notes/n${i}`, title: `Note ${i}` });
+  }
+  await world.hub.refresh();
+  world.server.editPage(page.id);
+  await world.hub.refresh();
+  await world.hub.refresh();
+  assert.deepEqual(
+    changed(world.fake)
+      .filter((e) => e.data.title === 'A')
+      .map((e) => e.data.change),
+    ['created', 'updated'],
+  );
+});
+
+test('an own write listed with an earlier time (before its render) is not announced', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const out = await run(world, 'create_page', { path: 'rendu', title: 'Rendu' });
+  const page = world.server.state.pages.find((p) => p.id === out.page_id);
+  // Wiki.js answered the time after the render; a read during it saw an earlier one.
+  const answered = page.updatedAt;
+  page.updatedAt = new Date(Date.parse(answered) - 3000).toISOString();
+  await world.hub.refresh();
+  page.updatedAt = answered;
+  await world.hub.refresh();
+  assert.equal(world.fake.sceneEvents.length, 0);
+});

@@ -146,5 +146,6 @@ página**; la segunda también **Página creada**.
 - Una lectura es una petición que lista todas las páginas (unos cientos de kB
   para miles de páginas), más una por página anunciada. Wiki.js no impone
   ninguna cuota de peticiones.
+- Las páginas no publicadas se cuentan y anuncian como las demás: la clave las ve.
 - La integración nunca elimina ni mueve nada en Wiki.js.
 - Sin relación con Wiki.js ni con Requarks.

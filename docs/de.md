@@ -146,5 +146,6 @@ zweite auch **Seite erstellt**.
 - Ein Lesevorgang ist eine Anfrage, die alle Seiten auflistet (einige hundert kB
   bei Tausenden von Seiten), plus eine pro gemeldeter Seite. Wiki.js setzt kein
   Anfragekontingent.
+- Nicht veröffentlichte Seiten werden wie die anderen gezählt und gemeldet: Der Schlüssel sieht sie.
 - Die Integration löscht oder verschiebt nie etwas in Wiki.js.
 - Nicht mit Wiki.js oder Requarks verbunden.
